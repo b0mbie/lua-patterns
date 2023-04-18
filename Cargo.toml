@@ -1,16 +1,16 @@
 [package]
-name = "lua-patterns"
+name = "lua-patterns-nostd"
 version = "0.3.0"
 edition = "2021"
-authors = ["steve donovan <steve.j.donovan@gmail.com>"]
+authors = ["steve donovan <steve.j.donovan@gmail.com>", "mike werezak <mwerezak@gmail.com>"]
 description = "Binding to Lua String Patterns"
 license = "MIT"
-repository = "https://github.com/stevedonovan/lua-patterns"
-documentation = "https://docs.rs/lua-patterns"
+repository = "https://github.com/mwerezak/lua-patterns"
+documentation = "https://docs.rs/lua-patterns-nostd"
 
-keywords = ["string","matching","lua"]
+keywords = ["string","matching","lua","no_std","no-std","regex","pattern"]
 
-categories = ["parsing","api-bindings"]
+categories = ["parsing","api-bindings","no-std","text-processing "]
 
 [dependencies]
 heapless = { version = "0.7", optional = true }
