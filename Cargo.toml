@@ -12,5 +12,9 @@ keywords = ["string","matching","lua"]
 
 categories = ["parsing","api-bindings"]
 
+[dependencies]
+heapless = { version = "0.7", optional = true }
+
 [features]
 std = []
+heapless = ["dep:heapless"]

@@ -1,11 +1,7 @@
 use core::fmt;
 
-#[cfg(feature = "std")]
-use core::error::Error;
-
 /// Error type returned by _try methods
-#[derive(PartialEq)]
-#[cfg_attr(feature = "std", derive(Debug))]
+#[derive(PartialEq, Debug)]
 pub enum PatternError {
 	InvalidPatternCapture,
 	InvalidCaptureIndex(Option<i8>),
@@ -34,9 +30,8 @@ impl fmt::Display for PatternError {
 }
 
 #[cfg(feature = "std")]
-impl Error for PatternError {
-	fn description(&self) -> &str {
-		&self.0
-	}
-}
+use std::error::Error;
+
+#[cfg(feature = "std")]
+impl Error for PatternError { }
 

@@ -48,12 +48,22 @@ extern crate std;
 
 use core::ops;
 
-mod luapat;
-pub mod errors;
+#[cfg(feature = "std")]
+use std::vec::Vec;
+#[cfg(feature = "std")]
+use std::string::{String, ToString};
+#[cfg(feature = "std")]
+use std::format;
 
+pub mod errors;
 use crate::errors::*;
+
+mod luapat;
 use crate::luapat::*;
 
+// If we run out of space in a fixed-capacity container, produce a partial result
+#[cfg(feature = "heapless")]
+type PartialResult<T> = Result<T, T>;
 
 /// Represents a Lua string pattern and the results of a match
 pub struct LuaPattern<'a> {
@@ -168,10 +178,26 @@ impl <'a> LuaPattern<'a> {
     /// let mut m = lua_patterns::LuaPattern::new("(one).+");
     /// assert_eq!(m.captures(" one two"), &["one two","one"]);
     /// ```
+    #[cfg(feature = "std")]
     pub fn captures<'b>(&mut self, text: &'b str) -> Vec<&'b str> {
         let mut res = Vec::new();
         self.capture_into(text, &mut res);
         res
+    }
+
+    /// Match and collect all captures as a vector of string slices
+    ///
+    /// ```
+    /// let mut m = lua_patterns::LuaPattern::new("(one).+");
+    /// assert_eq!(m.captures(" one two"), &["one two","one"]);
+    /// ```
+    #[cfg(feature = "heapless")]
+    pub fn captures_heapless<'b, const N: usize>(&mut self, text: &'b str) -> PartialResult<heapless::Vec<&'b str, N>> {
+        let mut res = heapless::Vec::new();
+        match self.capture_into_heapless(text, &mut res) {
+            Ok(_) => Ok(res),
+            Err(_) => Err(res),
+        }
     }
 
     /// A convenient way to access the captures with no allocation
@@ -199,6 +225,7 @@ impl <'a> LuaPattern<'a> {
     ///     assert_eq!(v, &["hello one","hello"]);
     /// }
     /// ```
+    #[cfg(feature = "std")]
     pub fn capture_into<'b>(&mut self, text: &'b str, vec: &mut Vec<&'b str>) -> bool {
         self.matches(text);
         vec.clear();
@@ -206,6 +233,26 @@ impl <'a> LuaPattern<'a> {
             vec.push(&text[self.capture(i)]);
         }
         self.n_match > 0
+    }
+
+    /// Match and collect all captures into the provided vector.
+    ///
+    /// ```rust
+    /// let text = "  hello one";
+    /// let mut m = lua_patterns::LuaPattern::new("(%S+) one");
+    /// let mut v = Vec::new();
+    /// if m.capture_into(text,&mut v) {
+    ///     assert_eq!(v, &["hello one","hello"]);
+    /// }
+    /// ```
+    #[cfg(feature = "heapless")]
+    pub fn capture_into_heapless<'b, const N: usize>(&mut self, text: &'b str, vec: &mut heapless::Vec<&'b str, N>) -> Result<bool,()> {
+        self.matches(text);
+        vec.clear();
+        for i in 0..self.n_match {
+            vec.push(&text[self.capture(i)]).or(Err(()))?;
+        }
+        Ok(self.n_match > 0)
     }
 
     /// The full match (same as `capture(0)`)
@@ -294,7 +341,8 @@ impl <'a> LuaPattern<'a> {
     /// );
     /// assert_eq!(res, "hello DOLLY you're so FINE!");
     /// ```
-    pub fn gsub_with <F> (&mut self, text: &str, lookup: F) -> String
+    #[cfg(feature = "std")]
+    pub fn gsub_with<F> (&mut self, text: &str, lookup: F) -> String
     where F: Fn(Captures)-> String {
         let mut slice = text;
         let mut res = String::new();
@@ -312,6 +360,43 @@ impl <'a> LuaPattern<'a> {
         res
     }
 
+    /// Globally substitute all matches with a replacement
+    /// provided by a function of the captures.
+    ///
+    /// If there isn't enough space the Err variant will be returned with a partial result.
+    ///
+    /// ```
+    /// let mut m = lua_patterns::LuaPattern::new("%$(%S+)");
+    /// let res = m.gsub_with("hello $dolly you're so $fine!",
+    ///     |cc| cc.get(1).to_uppercase()
+    /// );
+    /// assert_eq!(res, "hello DOLLY you're so FINE!");
+    /// ```
+    #[cfg(feature = "heapless")]
+    pub fn gsub_with_heapless<F, const N: usize, const M: usize> (&mut self, text: &str, lookup: F) -> PartialResult<heapless::String<N>>
+    where F: Fn(Captures)-> heapless::String<M> {
+        let mut slice = text;
+        let mut res = heapless::String::new();
+        while self.matches(slice) {
+            // full range of match
+            let all = self.range();
+            // append everything up to match
+            if let Err(_) = res.push_str(&slice[0..all.start]) {
+                return Err(res);
+            }
+            let captures = Captures{m: self, text: slice};
+            let repl = lookup(captures);
+            if let Err(_) = res.push_str(&repl) {
+                return Err(res);
+            }
+            slice = &slice[all.end..];
+        }
+        if let Err(_) = res.push_str(slice) {
+            return Err(res);
+        }
+        Ok(res)
+    }
+
     /// Globally substitute all matches with a replacement string
     ///
     /// This string _may_ have capture references ("%0",..). Use "%%"
@@ -322,7 +407,8 @@ impl <'a> LuaPattern<'a> {
     /// let res = m.gsub("a=2; b=3; c = 4;", "'%2':%1 ");
     /// assert_eq!(res,"'2':a '3':b '4':c ");
     /// ```
-    pub fn gsub (&mut self, text: &str, repl: &str) -> String {
+    #[cfg(feature = "std")]
+    pub fn gsub(&mut self, text: &str, repl: &str) -> String {
         let repl = generate_gsub_patterns(repl);
         let mut slice = text;
         let mut res = String::new();
@@ -352,7 +438,8 @@ impl <'a> LuaPattern<'a> {
     /// let res = m.gsub_bytes_with(bytes,|cc| vec![0xFF]);
     /// assert_eq!(res, &[0xAA,0xFF,0x03,0xBB]);
     /// ```
-    pub fn gsub_bytes_with <F> (&mut self, bytes: &[u8], lookup: F) -> Vec<u8>
+    #[cfg(feature = "std")]
+    pub fn gsub_bytes_with<F>(&mut self, bytes: &[u8], lookup: F) -> Vec<u8>
     where F: Fn(ByteCaptures)-> Vec<u8> {
         let mut slice = bytes;
         let mut res = Vec::new();
@@ -369,20 +456,57 @@ impl <'a> LuaPattern<'a> {
         res
     }
 
+    /// Globally substitute all _byte_ matches with a replacement
+    /// provided by a function of the captures.
+    ///
+    /// If there isn't enough space the Err variant will be returned with a partial result.
+    ///
+    /// ```
+    /// let bytes = &[0xAA,0x01,0x02,0x03,0xBB];
+    /// let patt = &[0x01,0x02];
+    /// let mut m = lua_patterns::LuaPattern::from_bytes(patt);
+    /// let res = m.gsub_bytes_with(bytes,|cc| vec![0xFF]);
+    /// assert_eq!(res, &[0xAA,0xFF,0x03,0xBB]);
+    /// ```
+    #[cfg(feature = "heapless")]
+    pub fn gsub_bytes_with_heapless<F, const N: usize, const M: usize>(&mut self, bytes: &[u8], lookup: F) -> PartialResult<heapless::Vec<u8, N>>
+    where F: Fn(ByteCaptures)-> heapless::Vec<u8, M> {
+        let mut slice = bytes;
+        let mut res = heapless::Vec::new();
+        while self.matches_bytes(slice) {
+            let all = self.range();
+            let capture = &slice[0..all.start];
+            if let Err(_) = res.extend_from_slice(capture) {
+                return Err(res);
+            }
+            let captures = ByteCaptures{m: self, bytes: slice};
+            let repl = lookup(captures);
+            res.extend(repl);
+            slice = &slice[all.end..];
+        }
+        if let Err(_) = res.extend_from_slice(slice) {
+            return Err(res);
+        }
+        Ok(res)
+    }
+
 }
 
+#[cfg(feature = "std")]
 #[derive(Debug)]
 pub enum Subst {
     Text(String),
     Capture(usize)
 }
 
+#[cfg(feature = "std")]
 impl Subst {
     fn new_text(text: &str) -> Subst {
         Subst::Text(text.to_string())
     }
 }
 
+#[cfg(feature = "std")]
 pub fn generate_gsub_patterns(repl: &str) -> Vec<Subst> {
     let mut m = LuaPattern::new("%%([%%%d])");
     let mut res = Vec::new();
@@ -406,10 +530,12 @@ pub fn generate_gsub_patterns(repl: &str) -> Vec<Subst> {
     res
 }
 
+#[cfg(feature = "std")]
 pub struct Substitute {
     repl: Vec<Subst>
 }
 
+#[cfg(feature = "std")]
 impl Substitute {
     pub fn new(repl: &str) -> Substitute {
         Substitute{
@@ -565,10 +691,12 @@ impl <'a,'b>Iterator for GMatchBytes<'a,'b> {
 }
 
 /// Build a byte Lua pattern, optionally escaping 'magic' characters
+#[cfg(feature = "std")]
 pub struct LuaPatternBuilder {
     bytes: Vec<u8>
 }
 
+#[cfg(feature = "std")]
 impl LuaPatternBuilder {
     /// Create a new Lua pattern builder
     pub fn new() -> LuaPatternBuilder {
@@ -677,7 +805,6 @@ impl LuaPatternBuilder {
     /// assert_eq!(hex,"AEFE00FE");
     ///
     /// ```
-    #[cfg(feature = "std")]
     pub fn bytes_to_hex(s: &[u8]) -> String {
         s.iter().map(|b| format!("{:02X}",b)).collect()
     }
@@ -685,6 +812,7 @@ impl LuaPatternBuilder {
 }
 
 #[cfg(test)]
+#[cfg(feature = "std")]
 mod tests {
     use super::*;
 

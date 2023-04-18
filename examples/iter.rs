@@ -29,18 +29,17 @@ fn main() {
         println!("'{}'='{}'",cc.get(1),cc.get(2));
     }
 
-    let mut m = lp::LuaPattern::new("%$(%S+)");
-    let res = m.gsub_with("hello $dolly you're so $fine",
-        |cc| cc.get(1).to_uppercase()
-    );
-    assert_eq!(res,"hello DOLLY you're so FINE");
+    if cfg!(feature = "std") {
+        let mut m = lp::LuaPattern::new("%$(%S+)");
+        let res = m.gsub_with("hello $dolly you're so $fine",
+            |cc| cc.get(1).to_uppercase()
+        );
+        assert_eq!(res,"hello DOLLY you're so FINE");
 
-    let mut m = lp::LuaPattern::new("(%S+)%s*=%s*([^;]+);");
-    let res = m.gsub_with("alpha=bonzo; beta=felix;",
-        |cc| format!("{}:'{}',", cc.get(1), cc.get(2))
-    );
-    assert_eq!(res, "alpha:'bonzo', beta:'felix',");
-
-
-
+        let mut m = lp::LuaPattern::new("(%S+)%s*=%s*([^;]+);");
+        let res = m.gsub_with("alpha=bonzo; beta=felix;",
+            |cc| format!("{}:'{}',", cc.get(1), cc.get(2))
+        );
+        assert_eq!(res, "alpha:'bonzo', beta:'felix',");
+    }
 }
