@@ -94,7 +94,7 @@ impl <'a> LuaPattern<'a> {
     /// assert_eq!(&bytes[m.range()], &[0xFE,0xEE,0xEE,0xED]);
     /// ```
     pub fn matches_bytes(&mut self, s: &[u8]) -> bool {
-        self.n_match = str_match(s,self.patt,&mut self.matches).expect("Should not fail - report as bug");
+        self.n_match = str_match(s, self.patt, &mut self.matches).unwrap();
         self.n_match > 0
     }
 

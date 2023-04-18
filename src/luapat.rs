@@ -76,13 +76,7 @@ impl Capture {
     }
 }
 
-use std::result;
-
-type Result<T> = result::Result<T,PatternError>;
-
-fn error<T>(msg: &str) ->  Result<T> {
-    Err(PatternError(msg.into()))
-}
+type Result<T> = result::Result<T, PatternError>;
 
 struct MatchState {
     matchdepth: usize, /* control for recursive depth (to avoid stack overflow) */
@@ -108,7 +102,7 @@ impl MatchState {
     fn check_capture(&self, l: usize) -> Result<usize> {
         let l = l as i8 - b'1' as i8;
         if l < 0 || l as usize >= self.level || self.capture[l as usize].is_unfinished() {
-            return error(&format!("invalid capture index %{}", l + 1));
+            return Err(PatternError::InvalidCaptureIndex(Some(l)));
         }
         Ok(l as usize)
     }
@@ -121,7 +115,7 @@ impl MatchState {
             }
             level -= 1;
         }
-        error("invalid pattern capture")
+        Err(PatternError::InvalidPatternCapture)
     }
 
     fn classend (&self, p: CPtr) -> Result<CPtr> {
@@ -130,7 +124,7 @@ impl MatchState {
         Ok(match ch {
             L_ESC => {
                 if next_p == self.p_end {
-                    return error("malformed pattern (ends with '%')");
+                    return Err(PatternError::MalformedPattern("ends with '%'"));
                 }
                 next(next_p)
             },
@@ -140,7 +134,7 @@ impl MatchState {
                 }
                 while at(next_p) != b']' {
                     if next_p == self.p_end {
-                        return error("malformed pattern (missing ']')");
+                        return Err(PatternError::MalformedPattern("missing ']'"));
                     }
                     let ch = at(next_p);
                     next_p = next(next_p);
@@ -225,7 +219,7 @@ impl MatchState {
 
     fn matchbalance (&self, s: CPtr, p: CPtr) -> Result<CPtr> {
         if p >= sub(self.p_end,1) {
-            return error("malformed pattern (missing arguments to '%b')");
+            return Err(PatternError::MalformedPattern("missing arguments to '%b'"));
         }
         if at(s) != at(p) {
             return Ok(null());
@@ -285,7 +279,7 @@ impl MatchState {
     fn start_capture(&mut self, s: CPtr, p: CPtr, what: CapLen) -> Result<CPtr> {
         let level = self.level;
         if level >= LUA_MAXCAPTURES {
-            return error("too many captures");
+            return Err(PatternError::TooManyCaptures);
         }
         self.capture[level].init = s;
         self.capture[level].len = what;
@@ -323,7 +317,7 @@ impl MatchState {
         let mut p = p;
         self.matchdepth -= 1;
         if self.matchdepth == 0 {
-            return error("pattern too complex");
+            return Err(PatternError::MatchDepthExceeded);
         }
 
         if p == self.p_end {  /* end of pattern? */
@@ -360,7 +354,7 @@ impl MatchState {
                     b'f' => { /* frontier? */
                         p = add(p,2);
                         if at(p) != b'[' {
-                            return error("missing '[' after '%f' in pattern");
+                            return Err(PatternError::MalformedPattern("missing '[' after '%f' in pattern"));
                         }
                         let ep = self.classend(p)?; /* points to what is next */
                         let previous = if s == self.src_init {b'\0'} else {at(sub(s,1))};
@@ -436,12 +430,12 @@ impl MatchState {
                 mm[0].end = diff(e,s);
                 Ok(())
             } else {
-                return error("invalid capture index");
+                return Err(PatternError::InvalidCaptureIndex(None))
             }
         } else {
             let init = self.capture[i].init;
             match self.capture[i].len {
-                CapLen::Unfinished => error("unfinished capture"),
+                CapLen::Unfinished => Err(PatternError::UnfinishedCapture),
                 CapLen::Position => {
                     mm[i].start = diff(init,next(self.src_init));
                     mm[i].end = mm[i].start;
@@ -480,13 +474,13 @@ impl MatchState {
                         b'b' => {
                             p = next(p);
                             if p >= self.p_end {
-                                return error("malformed pattern (missing arguments to '%b')");
+                                return Err(PatternError::MalformedPattern("missing arguments to '%b'"));
                             }
                         },
                         b'f' => {
                             p = next(p);
                             if at(p) != b'[' {
-                                return error("missing '['  after '%f' in pattern");
+                                return Err(PatternError::MalformedPattern("missing '[' after '%f' in pattern"));
                             }
                             p = sub(p,1); // so we see [...]
                         },
@@ -494,7 +488,7 @@ impl MatchState {
                             let l = (c as i8) - (b'1' as i8);
                             // println!("level {}", self.level);
                             if l < 0 || l as usize >= self.level || self.capture[l as usize].is_unfinished() {
-                                return error(&format!("invalid capture index %{}", l + 1));
+                                return Err(PatternError::InvalidCaptureIndex(Some(l)));
                             }
                             p = sub(p,1);
                         },
@@ -504,7 +498,7 @@ impl MatchState {
                 b'[' => {
                     while at(p) != b']' {
                         if p == self.p_end {
-                            return error("malformed pattern (missing ']')");
+                            return Err(PatternError::MalformedPattern("missing ']'"));
                         }
                         if at(p) == L_ESC && p < self.p_end {
                             p = next(p);
@@ -519,7 +513,7 @@ impl MatchState {
                         self.capture[self.level].len = CapLen::Unfinished;
                         self.level += 1;
                         if self.level >= LUA_MAXCAPTURES {
-                            return error("too many captures");
+                            return Err(PatternError::TooManyCaptures);
                         }
                     } else {
                         p = next(p);
@@ -527,7 +521,7 @@ impl MatchState {
                 },
                 b')' => {
                     if stack_idx == 0 {
-                        return error("no open capture");
+                        return Err(PatternError::NoOpenCapture);
                     }
                     stack_idx -= 1;
                     self.capture[level_stack[stack_idx]].len = CapLen::Position;
@@ -536,7 +530,7 @@ impl MatchState {
             }
         }
         if stack_idx > 0 {
-            return error("unfinished capture");
+            return Err(PatternError::UnfinishedCapture);
         }
         Ok(())
     }
@@ -580,7 +574,7 @@ pub fn str_check(p: &[u8]) -> Result<()> {
     }
     let mut ms = MatchState::new(null(),null(),add(p,lp));
     if at(sub(ms.p_end,1)) == b'%' {
-        return error("malformed pattern (ends with '%')");
+        return Err(PatternError::MalformedPattern("ends with '%'"));
     }
     ms.str_match_check(p)?;
     Ok(())

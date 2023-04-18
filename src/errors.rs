@@ -4,15 +4,33 @@ use core::fmt;
 use core::error::Error;
 
 /// Error type returned by _try methods
-#[derive(Debug,PartialEq)]
-pub struct PatternError(pub String);
+#[derive(PartialEq, Debug)]
+pub enum PatternError {
+	InvalidPatternCapture,
+	InvalidCaptureIndex(Option<i8>),
+	MalformedPattern(&'static str),
+	TooManyCaptures,
+	MatchDepthExceeded,
+	UnfinishedCapture,
+	NoOpenCapture,
+}
 
 impl fmt::Display for PatternError {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f,"{}",self.0)
+		match self {
+			Self::InvalidPatternCapture => write!(f, "invalid pattern capture"),
+			Self::InvalidCaptureIndex(None) => write!(f, "invalid capture index"),
+			Self::InvalidCaptureIndex(Some(idx)) => write!(f, "invalid capture index %{}", (*idx as usize) + 1),
+			Self::MalformedPattern(what) => write!(f, "malformed pattern ({})", what),
+			Self::TooManyCaptures => write!(f, "too many captures"),
+			Self::MatchDepthExceeded => write!(f, "pattern too complex"),
+			Self::UnfinishedCapture => write!(f, "unfinished capture"),
+			Self::NoOpenCapture => write!(f, "no open capture"),
+		}
 	}
 }
 
+#[cfg(feature = "std")]
 impl Error for PatternError {
 	fn description(&self) -> &str {
 		&self.0
