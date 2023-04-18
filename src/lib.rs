@@ -784,17 +784,17 @@ mod tests {
     #[test]
     fn bad_patterns() {
        let bad = [
-        ("bonzo %","malformed pattern (ends with '%')"),
-        ("bonzo (dog%(","unfinished capture"),
-        ("alles [%a%[","malformed pattern (missing ']')"),
-        ("bonzo (dog (cat)","unfinished capture"),
-        ("frodo %f[%A","malformed pattern (missing ']')"),
-        ("frodo (1) (2(3)%2)%1","invalid capture index %2"),
+            ( "bonzo %",              PatternError::MalformedPattern("ends with '%'") ),
+            ( "bonzo (dog%(",         PatternError::UnfinishedCapture                 ),
+            ( "alles [%a%[",          PatternError::MalformedPattern("missing ']'")   ),
+            ( "bonzo (dog (cat)",     PatternError::UnfinishedCapture                 ),
+            ( "frodo %f[%A",          PatternError::MalformedPattern("missing ']'")   ),
+            ( "frodo (1) (2(3)%2)%1", PatternError::InvalidCaptureIndex(Some(1))      ),
         ];
         for p in bad.iter() {
             let res = LuaPattern::new_try(p.0);
             if let Err(e) = res {
-                assert_eq!(e, PatternError(p.1.into()));
+                assert_eq!(e, p.1);
             } else {
                 panic!("false positive");
             }
