@@ -1,6 +1,7 @@
 [package]
 name = "lua-patterns"
 version = "0.3.0"
+edition = "2021"
 authors = ["steve donovan <steve.j.donovan@gmail.com>"]
 description = "Binding to Lua String Patterns"
 license = "MIT"

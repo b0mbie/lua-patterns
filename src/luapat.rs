@@ -3,7 +3,7 @@
 use core::result;
 use core::ptr::null;
 
-use errors::*;
+use crate::errors::*;
 
 pub const LUA_MAXCAPTURES: usize = 32;
 /* maximum recursion depth for 'match' */

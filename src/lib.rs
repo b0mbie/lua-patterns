@@ -48,10 +48,11 @@ extern crate std;
 
 use core::ops;
 
-pub mod errors;
-use errors::*;
 mod luapat;
-use luapat::*;
+pub mod errors;
+
+use crate::errors::*;
+use crate::luapat::*;
 
 
 /// Represents a Lua string pattern and the results of a match
