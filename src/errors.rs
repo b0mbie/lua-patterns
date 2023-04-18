@@ -13,6 +13,7 @@ pub enum PatternError {
 	MatchDepthExceeded,
 	UnfinishedCapture,
 	NoOpenCapture,
+	NoCaptureLength,
 }
 
 impl fmt::Display for PatternError {
@@ -26,6 +27,7 @@ impl fmt::Display for PatternError {
 			Self::MatchDepthExceeded => write!(f, "pattern too complex"),
 			Self::UnfinishedCapture => write!(f, "unfinished capture"),
 			Self::NoOpenCapture => write!(f, "no open capture"),
+			Self::NoCaptureLength => write!(f, "capture was unfinished or positional"),
 		}
 	}
 }

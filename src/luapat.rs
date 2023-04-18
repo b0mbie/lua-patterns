@@ -56,7 +56,7 @@ impl CapLen {
     fn size(&self) -> Result<usize> {
         match *self {
             CapLen::Len(size) => Ok(size),
-            _ => error("capture was unfinished or positional")
+            _ => Err(PatternError::NoCaptureLength),
         }
     }
 
