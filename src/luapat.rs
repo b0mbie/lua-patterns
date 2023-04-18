@@ -33,6 +33,7 @@ fn diff(p1: CPtr, p2: CPtr) -> usize {
 }
 
 #[derive(Copy,Clone)]
+#[cfg_attr(feature = "std", derive(Debug))]
 pub struct LuaMatch {
     pub start: usize,
     pub end: usize,

@@ -4,7 +4,8 @@ use core::fmt;
 use core::error::Error;
 
 /// Error type returned by _try methods
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq)]
+#[cfg_attr(feature = "std", derive(Debug))]
 pub enum PatternError {
 	InvalidPatternCapture,
 	InvalidCaptureIndex(Option<i8>),
