@@ -249,8 +249,8 @@ impl <'a> LuaPattern<'a> {
     /// ```rust
     /// let text = "  hello one";
     /// let mut m = lua_patterns2::LuaPattern::new("(%S+) one");
-    /// let mut v = Vec::new();
-    /// if m.capture_into(text,&mut v) {
+    /// let mut v = heapless::Vec::new();
+    /// if m.capture_into_heapless(text,&mut v).unwrap() {
     ///     assert_eq!(v, &["hello one","hello"]);
     /// }
     /// ```
@@ -376,9 +376,9 @@ impl <'a> LuaPattern<'a> {
     ///
     /// ```
     /// let mut m = lua_patterns2::LuaPattern::new("%$(%S+)");
-    /// let res = m.gsub_with("hello $dolly you're so $fine!",
+    /// let res = m.gsub_with_heapless("hello $dolly you're so $fine!",
     ///     |cc| cc.get(1).to_uppercase()
-    /// );
+    /// ).unwrap();
     /// assert_eq!(res, "hello DOLLY you're so FINE!");
     /// ```
     #[cfg(feature = "heapless")]
@@ -443,7 +443,7 @@ impl <'a> LuaPattern<'a> {
     /// let bytes = &[0xAA,0x01,0x02,0x03,0xBB];
     /// let patt = &[0x01,0x02];
     /// let mut m = lua_patterns2::LuaPattern::from_bytes(patt);
-    /// let res = m.gsub_bytes_with(bytes,|cc| vec![0xFF]);
+    /// let res = m.gsub_bytes_with_heapless(bytes,|cc| vec![0xFF]);
     /// assert_eq!(res, &[0xAA,0xFF,0x03,0xBB]);
     /// ```
     #[cfg(feature = "heapless")]
