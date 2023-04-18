@@ -8,11 +8,64 @@ power can be dangerous or just plain confusing.
 This is why OpenBSD's httpd has [Lua patterns](http://man.openbsd.org/patterns.7).
 The decision to use `%` as the escape rather than the traditional `\` is refreshing.
 In the Rust context, `lua-patterns` is a very lightweight dependency, if you
-don't need the full power of the `regex` crate.
+don't need the full power of the `regex` crate or need support for `no_std`.
+
+This is a fork of the original `lua-patterns` crate that supports `no_std` environments.
+There are two feature flags: `std` and `heapless`. Neither are enabled by default.
+The following table shows which parts of the API are enabled by each feature flag.
+Enabling the `heapless` feature flag adds a dependency on the [`heapless`](https://crates.io/crates/heapless) crate.
+
+<table>
+    <tbody>
+        <tr>
+            <th>Feature Flag</th>
+            <th>API</th>
+        </tr>
+        <tr>
+            <td><code>std</code></td>
+            <td>
+                <ul>
+                    <li><code>LuaPatternBuilder</code></li>
+                    <li><code>LuaPattern::captures()</code></li>
+                    <li><code>LuaPattern::capture_into()</code></li>
+                    <li><code>LuaPattern::gsub_with()</code></li>
+                    <li><code>LuaPattern::gsub_bytes_with()</code></li>
+                    <li><code>LuaPattern::gsub()</code></li>
+                    <li><code>Subst</code></li>
+                    <li><code>Substitute</code></li>
+                    <li><code>generate_gsub_patterns()</code></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><code>heapless</code></td>
+            <td>
+                <ul>
+                    <li><code>LuaPattern::captures_heapless()</code></li>
+                    <li><code>LuaPattern::capture_into_heapless()</code></li>
+                    <li><code>LuaPattern::gsub_with_heapless()</code></li>
+                    <li><code>LuaPattern::gsub_bytes_with_heapless()</code></li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+With no feature flags enabled, this crate retains most of the `lua-patterns` API surface. 
+Enabling `heapless` recovers methods that modify or return containers. 
+
+The only functionality that strictly depends on `std` is:
+
+1. Subsitition where the replacement string contains capture references. This functionality can be replicated using the
+methods that take a closure instead of a replacement string.
+2. The `LuaPatternBuilder` struct used to dynamically create pattern strings at runtime. Most likely in a `no_std`
+environment you will want your pattern strings to be static anyways.
 
 This library reuses the original source from Lua 5.2 - only
 400 lines of battle-tested C. I originally did this for a similar project to bring
 [these patterns to C++](https::/github.com/stevedonovan/rx-cpp).
+
+Note: the C code has been replaced with a very literal translation into unsafe Rust.
 
 More information can be found on [the Lua wiki](http://lua-users.org/wiki/PatternsTutorial).
 The cool thing is that Lua is a 300KB download, if you want to test patterns out
