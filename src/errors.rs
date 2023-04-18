@@ -1,5 +1,7 @@
-use std::fmt;
-use std::error::Error;
+use core::fmt;
+
+#[cfg(feature = "std")]
+use core::error::Error;
 
 /// Error type returned by _try methods
 #[derive(Debug,PartialEq)]

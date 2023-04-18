@@ -41,7 +41,12 @@
 //! }
 //! ```
 
-use std::ops;
+#![no_std]
+
+#[cfg(feature = "std")]
+extern crate std;
+
+use core::ops;
 
 pub mod errors;
 use errors::*;
@@ -58,7 +63,7 @@ pub struct LuaPattern<'a> {
 
 impl <'a> LuaPattern<'a> {
     /// Maybe create a new Lua pattern from a slice of bytes
-    pub fn from_bytes_try (bytes: &'a [u8]) -> Result<LuaPattern<'a>,PatternError> {
+    pub fn from_bytes_try (bytes: &'a [u8]) -> Result<LuaPattern<'a>, PatternError> {
         str_check(bytes)?;
         let matches = [LuaMatch{start: 0, end: 0}; LUA_MAXCAPTURES];
         Ok(LuaPattern{patt: bytes, matches: matches, n_match: 0})
@@ -649,7 +654,7 @@ impl LuaPatternBuilder {
     /// Create the pattern
     pub fn build(&mut self) -> Vec<u8> {
         let mut v = Vec::new();
-        std::mem::swap(&mut self.bytes, &mut v);
+        core::mem::swap(&mut self.bytes, &mut v);
         v
     }
 
@@ -671,6 +676,7 @@ impl LuaPatternBuilder {
     /// assert_eq!(hex,"AEFE00FE");
     ///
     /// ```
+    #[cfg(feature = "std")]
     pub fn bytes_to_hex(s: &[u8]) -> String {
         s.iter().map(|b| format!("{:02X}",b)).collect()
     }

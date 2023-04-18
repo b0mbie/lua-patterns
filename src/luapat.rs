@@ -1,7 +1,9 @@
 // translation of Lua 5.2 string pattern code
 
+use core::result;
+use core::ptr::null;
+
 use errors::*;
-use std::ptr::null;
 
 pub const LUA_MAXCAPTURES: usize = 32;
 /* maximum recursion depth for 'match' */
@@ -30,7 +32,7 @@ fn diff(p1: CPtr, p2: CPtr) -> usize {
     d as usize
 }
 
-#[derive(Copy,Clone,Debug)]
+#[derive(Copy,Clone)]
 pub struct LuaMatch {
     pub start: usize,
     pub end: usize,
@@ -369,7 +371,7 @@ impl MatchState {
                         }
                         s = null(); /* match failed */
                     },
-                    b'0'...b'9' => {  /* capture results (%0-%9)? */
+                    b'0'..=b'9' => {  /* capture results (%0-%9)? */
                         s = self.match_capture(s,at(next(p)) as usize)?;
                         if ! s.is_null() {
                             return self.patt_match(s, add(p,2));
@@ -488,9 +490,9 @@ impl MatchState {
                             }
                             p = sub(p,1); // so we see [...]
                         },
-                        b'0' ... b'9' => {
+                        b'0' ..= b'9' => {
                             let l = (c as i8) - (b'1' as i8);
-                            println!("level {}", self.level);
+                            // println!("level {}", self.level);
                             if l < 0 || l as usize >= self.level || self.capture[l as usize].is_unfinished() {
                                 return error(&format!("invalid capture index %{}", l + 1));
                             }

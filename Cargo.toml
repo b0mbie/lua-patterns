@@ -11,5 +11,5 @@ keywords = ["string","matching","lua"]
 
 categories = ["parsing","api-bindings"]
 
-
-
+[features]
+std = []
