@@ -21,7 +21,7 @@ impl LuaPatternBuilder {
     /// Add unescaped characters from a string
     ///
     /// ```
-    /// let patt = lua_patterns::LuaPatternBuilder::new()
+    /// let patt = lua_patterns2::LuaPatternBuilder::new()
     ///     .text("(boo)")
     ///     .build();
     /// assert_eq!(std::str::from_utf8(&patt).unwrap(), "(boo)");
@@ -38,7 +38,7 @@ impl LuaPatternBuilder {
     /// Works with patterns that use '%s' religiously!
     ///
     /// ```
-    /// let patt = lua_patterns::LuaPatternBuilder::new()
+    /// let patt = lua_patterns2::LuaPatternBuilder::new()
     ///     .text_lines("
     ///       hello-dolly
     ///       you-are-fine  # comment
@@ -61,7 +61,7 @@ impl LuaPatternBuilder {
     /// Add escaped bytes from a slice
     ///
     /// ```
-    /// let patt = lua_patterns::LuaPatternBuilder::new()
+    /// let patt = lua_patterns2::LuaPatternBuilder::new()
     ///     .text("^")
     ///     .bytes(b"^") // magic character!
     ///     .build();
@@ -84,7 +84,7 @@ impl LuaPatternBuilder {
     /// This consists of adjacent pairs of hex digits.
     ///
     /// ```
-    /// let patt = lua_patterns::LuaPatternBuilder::new()
+    /// let patt = lua_patterns2::LuaPatternBuilder::new()
     ///     .text("^")
     ///     .bytes_as_hex("5E") // which is ASCII '^'
     ///     .build();
@@ -105,7 +105,7 @@ impl LuaPatternBuilder {
     /// Utility to create a vector of bytes from a hex string
     ///
     /// ```
-    /// let bb = lua_patterns::LuaPatternBuilder::hex_to_bytes("AEFE00FE");
+    /// let bb = lua_patterns2::LuaPatternBuilder::hex_to_bytes("AEFE00FE");
     /// assert_eq!(bb, &[0xAE,0xFE,0x00,0xFE]);
     /// ```
     pub fn hex_to_bytes(s: &str) -> Vec<u8> {
@@ -116,7 +116,7 @@ impl LuaPatternBuilder {
     /// Utility to create a hex string from a slice of bytes
     ///
     /// ```
-    /// let hex = lua_patterns::LuaPatternBuilder::bytes_to_hex(&[0xAE,0xFE,0x00,0xFE]);
+    /// let hex = lua_patterns2::LuaPatternBuilder::bytes_to_hex(&[0xAE,0xFE,0x00,0xFE]);
     /// assert_eq!(hex,"AEFE00FE");
     ///
     /// ```

@@ -1,7 +1,7 @@
 // Similar to the strings(1) utility
 // We print any sequences involving four or more ASCII letters
-extern crate lua_patterns;
-use lua_patterns::LuaPattern;
+extern crate lua_patterns2;
+use lua_patterns2::LuaPattern;
 
 use std::env;
 use std::str;

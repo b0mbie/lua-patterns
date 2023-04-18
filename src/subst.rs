@@ -1,7 +1,7 @@
 //! Support for global substitution with capture references. 
 //!
 //! ```
-//! let mut m = lua_patterns::LuaPattern::new("(%S+)%s*=%s*(%S+);%s*");
+//! let mut m = lua_patterns2::LuaPattern::new("(%S+)%s*=%s*(%S+);%s*");
 //! let res = m.gsub("a=2; b=3; c = 4;", "'%2':%1 ");
 //! assert_eq!(res,"'2':a '3':b '4':c ");
 //! ```
@@ -17,7 +17,7 @@ impl <'a> LuaPattern<'a> {
     /// to represent "%". Plain strings like "" work just fine ;)
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(%S+)%s*=%s*(%S+);%s*");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%S+)%s*=%s*(%S+);%s*");
     /// let res = m.gsub("a=2; b=3; c = 4;", "'%2':%1 ");
     /// assert_eq!(res,"'2':a '3':b '4':c ");
     /// ```

@@ -1,5 +1,5 @@
-extern crate lua_patterns;
-use lua_patterns::errors::PatternError;
+extern crate lua_patterns2;
+use lua_patterns2::errors::PatternError;
 
 fn main() {
    let bad = [
@@ -12,7 +12,7 @@ fn main() {
     ];
 
     for p in bad.iter() {
-        let res = lua_patterns::LuaPattern::new_try(p.0);
+        let res = lua_patterns2::LuaPattern::new_try(p.0);
         if let Err(e) = res {
             assert_eq!(e, p.1);
         } else {

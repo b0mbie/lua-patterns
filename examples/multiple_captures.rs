@@ -1,4 +1,4 @@
-extern crate lua_patterns as lp;
+extern crate lua_patterns2 as lp;
 
 fn main() {
     let mut p = lp::LuaPattern::new("%s*(%d+)%s+(%S+)");

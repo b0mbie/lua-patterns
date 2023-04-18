@@ -62,7 +62,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lua-patterns-nostd"
+name = "lua-patterns2"
 version = "0.3.0"
 dependencies = [
  "heapless",

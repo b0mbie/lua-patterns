@@ -15,8 +15,8 @@
 //! ## Examples
 //!
 //! ```rust
-//! extern crate lua_patterns;
-//! let mut m = lua_patterns::LuaPattern::new("one");
+//! extern crate lua_patterns2;
+//! let mut m = lua_patterns2::LuaPattern::new("one");
 //! let text = "hello one two";
 //! assert!(m.matches(text));
 //! let r = m.range();
@@ -27,9 +27,9 @@
 //! Collecting captures from a match:
 //!
 //! ```rust
-//! extern crate lua_patterns;
+//! extern crate lua_patterns2;
 //! let text = "  hello one";
-//! let mut m = lua_patterns::LuaPattern::new("(%S+) one");
+//! let mut m = lua_patterns2::LuaPattern::new("(%S+) one");
 //!
 //! // allocates a vector of captures
 //! let v = m.captures(text);
@@ -51,7 +51,7 @@ use core::ops;
 #[cfg(feature = "std")]
 use std::vec::Vec;
 #[cfg(feature = "std")]
-use std::string::String;
+use std::string::{String, ToString};
 
 
 pub mod errors;
@@ -108,7 +108,7 @@ impl <'a> LuaPattern<'a> {
     ///
     /// ```
     /// let patt = &[0xFE,0xEE,b'+',0xED];
-    /// let mut m = lua_patterns::LuaPattern::from_bytes(patt);
+    /// let mut m = lua_patterns2::LuaPattern::from_bytes(patt);
     /// let bytes = &[0x00,0x01,0xFE,0xEE,0xEE,0xED,0xEF];
     /// assert!(m.matches_bytes(bytes));
     /// assert_eq!(&bytes[m.range()], &[0xFE,0xEE,0xEE,0xED]);
@@ -121,7 +121,7 @@ impl <'a> LuaPattern<'a> {
     /// Match a string with a pattern
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(%a+) one");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%a+) one");
     /// let text = " hello one two";
     /// assert!(m.matches(text));
     /// ```
@@ -132,7 +132,7 @@ impl <'a> LuaPattern<'a> {
     /// Match a string, returning first capture if successful
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("OK%s+(%d+)");
+    /// let mut m = lua_patterns2::LuaPattern::new("OK%s+(%d+)");
     /// let res = m.match_maybe("and that's OK 400 to you");
     /// assert_eq!(res, Some("400"));
     /// ```
@@ -147,7 +147,7 @@ impl <'a> LuaPattern<'a> {
     /// Match a string, returning first two explicit captures if successful
     ///
     /// ```
-    /// let mut p = lua_patterns::LuaPattern::new("%s*(%d+)%s+(%S+)");
+    /// let mut p = lua_patterns2::LuaPattern::new("%s*(%d+)%s+(%S+)");
     /// let (int,rest) = p.match_maybe_2(" 233   hello dolly").unwrap();
     /// assert_eq!(int,"233");
     /// assert_eq!(rest,"hello");
@@ -165,7 +165,7 @@ impl <'a> LuaPattern<'a> {
     /// Match a string, returning first three explicit captures if successful
     ///
     /// ```
-    /// let mut p = lua_patterns::LuaPattern::new("(%d+)/(%d+)/(%d+)");
+    /// let mut p = lua_patterns2::LuaPattern::new("(%d+)/(%d+)/(%d+)");
     /// let (y,m,d) = p.match_maybe_3("2017/11/10").unwrap();
     /// assert_eq!(y,"2017");
     /// assert_eq!(m,"11");
@@ -184,7 +184,7 @@ impl <'a> LuaPattern<'a> {
     /// Match and collect all captures as a vector of string slices
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(one).+");
+    /// let mut m = lua_patterns2::LuaPattern::new("(one).+");
     /// assert_eq!(m.captures(" one two"), &["one two","one"]);
     /// ```
     #[cfg(feature = "std")]
@@ -197,7 +197,7 @@ impl <'a> LuaPattern<'a> {
     /// Match and collect all captures as a vector of string slices
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(one).+");
+    /// let mut m = lua_patterns2::LuaPattern::new("(one).+");
     /// assert_eq!(m.captures(" one two"), &["one two","one"]);
     /// ```
     #[cfg(feature = "heapless")]
@@ -213,7 +213,7 @@ impl <'a> LuaPattern<'a> {
     ///
     /// ```rust
     /// let text = "  hello one";
-    /// let mut m = lua_patterns::LuaPattern::new("(%S+) one");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%S+) one");
     /// if m.matches(text) {
     ///     let cc = m.match_captures(text);
     ///     assert_eq!(cc.get(0), "hello one");
@@ -228,7 +228,7 @@ impl <'a> LuaPattern<'a> {
     ///
     /// ```rust
     /// let text = "  hello one";
-    /// let mut m = lua_patterns::LuaPattern::new("(%S+) one");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%S+) one");
     /// let mut v = Vec::new();
     /// if m.capture_into(text,&mut v) {
     ///     assert_eq!(v, &["hello one","hello"]);
@@ -248,7 +248,7 @@ impl <'a> LuaPattern<'a> {
     ///
     /// ```rust
     /// let text = "  hello one";
-    /// let mut m = lua_patterns::LuaPattern::new("(%S+) one");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%S+) one");
     /// let mut v = Vec::new();
     /// if m.capture_into(text,&mut v) {
     ///     assert_eq!(v, &["hello one","hello"]);
@@ -272,7 +272,7 @@ impl <'a> LuaPattern<'a> {
     /// Get the nth capture of the match.
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(%a+) one");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%a+) one");
     /// let text = " hello one two";
     /// assert!(m.matches(text));
     /// assert_eq!(m.capture(0),1..10);
@@ -301,7 +301,7 @@ impl <'a> LuaPattern<'a> {
     /// That is, this example will also work with the pattern "(%S+)".
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("%S+");
+    /// let mut m = lua_patterns2::LuaPattern::new("%S+");
     /// let split: Vec<_> = m.gmatch("dog  cat leopard wolf").collect();
     /// assert_eq!(split,&["dog","cat","leopard","wolf"]);
     /// ```
@@ -316,7 +316,7 @@ impl <'a> LuaPattern<'a> {
     /// the string slices using `get`.
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("(%S)%S+");
+    /// let mut m = lua_patterns2::LuaPattern::new("(%S)%S+");
     /// let split: Vec<_> = m.gmatch_captures("dog  cat leopard wolf")
     ///       .map(|cc| cc.get(1)).collect();
     /// assert_eq!(split,&["d","c","l","w"]);
@@ -330,7 +330,7 @@ impl <'a> LuaPattern<'a> {
     /// ```
     /// let bytes = &[0xAA,0x01,0x01,0x03,0xBB,0x01,0x01,0x01];
     /// let patt = &[0x01,b'+'];
-    /// let mut m = lua_patterns::LuaPattern::from_bytes(patt);
+    /// let mut m = lua_patterns2::LuaPattern::from_bytes(patt);
     /// let mut iter = m.gmatch_bytes(bytes);
     /// assert_eq!(iter.next().unwrap(), &[0x01,0x01]);
     /// assert_eq!(iter.next().unwrap(), &[0x01,0x01,0x01]);
@@ -344,7 +344,7 @@ impl <'a> LuaPattern<'a> {
     /// provided by a function of the captures.
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("%$(%S+)");
+    /// let mut m = lua_patterns2::LuaPattern::new("%$(%S+)");
     /// let res = m.gsub_with("hello $dolly you're so $fine!",
     ///     |cc| cc.get(1).to_uppercase()
     /// );
@@ -375,7 +375,7 @@ impl <'a> LuaPattern<'a> {
     /// If there isn't enough space the Err variant will be returned with a partial result.
     ///
     /// ```
-    /// let mut m = lua_patterns::LuaPattern::new("%$(%S+)");
+    /// let mut m = lua_patterns2::LuaPattern::new("%$(%S+)");
     /// let res = m.gsub_with("hello $dolly you're so $fine!",
     ///     |cc| cc.get(1).to_uppercase()
     /// );
@@ -412,7 +412,7 @@ impl <'a> LuaPattern<'a> {
     /// ```
     /// let bytes = &[0xAA,0x01,0x02,0x03,0xBB];
     /// let patt = &[0x01,0x02];
-    /// let mut m = lua_patterns::LuaPattern::from_bytes(patt);
+    /// let mut m = lua_patterns2::LuaPattern::from_bytes(patt);
     /// let res = m.gsub_bytes_with(bytes,|cc| vec![0xFF]);
     /// assert_eq!(res, &[0xAA,0xFF,0x03,0xBB]);
     /// ```
@@ -442,7 +442,7 @@ impl <'a> LuaPattern<'a> {
     /// ```
     /// let bytes = &[0xAA,0x01,0x02,0x03,0xBB];
     /// let patt = &[0x01,0x02];
-    /// let mut m = lua_patterns::LuaPattern::from_bytes(patt);
+    /// let mut m = lua_patterns2::LuaPattern::from_bytes(patt);
     /// let res = m.gsub_bytes_with(bytes,|cc| vec![0xFF]);
     /// assert_eq!(res, &[0xAA,0xFF,0x03,0xBB]);
     /// ```

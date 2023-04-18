@@ -79,8 +79,8 @@ for two main reasons:
   - after a match, the struct contains the results
 
 ```rust
-extern crate lua_patterns;
-use lua_patterns::LuaPattern;
+extern crate lua_patterns2;
+use lua_patterns2::LuaPattern;
 
 let mut m = LuaPattern::new("one");
 let text = "hello one two";
@@ -160,7 +160,7 @@ keep these values.
 It is fine to collect from an expression involving the `get` method however!
 
 ```rust
-let mut m = lua_patterns::LuaPattern::new("(%S)%S+");
+let mut m = lua_patterns2::LuaPattern::new("(%S)%S+");
 let split: Vec<_> = m.gmatch_captures("dog  cat leopard wolf")
        .map(|cc| cc.get(1)).collect();
 assert_eq!(split,&["d","c","l","w"]);
