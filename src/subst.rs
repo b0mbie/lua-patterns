@@ -42,7 +42,7 @@ impl <'a> LuaPattern<'a> {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Subst {
 	Text(String),
 	Capture(usize)

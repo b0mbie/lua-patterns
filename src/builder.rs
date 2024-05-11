@@ -8,6 +8,7 @@ use std::string::String;
 use crate::LuaPattern;
 
 /// Build a byte Lua pattern, optionally escaping 'magic' characters
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LuaPatternBuilder {
 	bytes: Vec<u8>
 }
@@ -123,5 +124,4 @@ impl LuaPatternBuilder {
 	pub fn bytes_to_hex(s: &[u8]) -> String {
 		s.iter().map(|b| format!("{:02X}",b)).collect()
 	}
-
 }

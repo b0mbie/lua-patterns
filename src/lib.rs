@@ -75,6 +75,7 @@ use crate::luapat::*;
 type PartialResult<T> = Result<T, T>;
 
 /// Represents a Lua string pattern and the results of a match
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LuaPattern<'a> {
 	patt: &'a [u8],
 	matches: [LuaMatch; LUA_MAXCAPTURES],

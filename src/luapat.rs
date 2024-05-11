@@ -32,13 +32,13 @@ fn diff(p1: CPtr, p2: CPtr) -> usize {
 	d as usize
 }
 
-#[derive(Copy,Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LuaMatch {
 	pub start: usize,
 	pub end: usize,
 }
 
-#[derive(Copy,Clone)]
+#[derive(Debug, Clone, Copy)]
 enum CapLen {
 	Len(usize),
 	Unfinished,
@@ -64,7 +64,7 @@ impl CapLen {
 
 type CPtr = *const u8;
 
-#[derive(Copy,Clone)]
+#[derive(Debug, Clone, Copy)]
 struct Capture {
 	init: CPtr,
 	len: CapLen,

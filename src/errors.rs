@@ -1,7 +1,7 @@
 use core::fmt;
 
 /// Error type returned by _try methods
-#[derive(PartialEq, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PatternError {
 	InvalidPatternCapture,
 	InvalidCaptureIndex(Option<i8>),
